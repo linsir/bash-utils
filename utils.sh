@@ -1,11 +1,19 @@
 #!/usr/bin/env bash
 # https://github.com/wklken/bash-utils
+# https://github.com/linsir/bash-utils
+
+RED='\033[31m'   # 红
+GREEN='\033[32m' # 绿
+YELLOW='\033[33m' # 黄
+BLUE='\033[34m'  # 蓝
+PINK='\033[35m'  # 粉红
+END='\033[0m'
 
 #====================== echo ======================
 
 echo_step() {
     # Usage: echo_step  "1. this is the step 1"
-    echo -e '\033[0;32m'"$1"'\033[0m'
+    echo -e ${GREEN}"$1"${END}
 }
 
 echo_separator() {
@@ -31,25 +39,82 @@ echo_in_processing_bar() {
 log_info() {
     # Usage: log_info "this is the info log message"
     NOW=$(date +"%Y-%m-%d %H:%M:%S")
-    echo "${NOW} [INFO] $1"
+    echo -e "${NOW} ${BLUE}[INFO] $1${END}"
 }
 
 log_warnning() {
     # Usage: log_warnning "this is the warning log message"
     NOW=$(date +"%Y-%m-%d %H:%M:%S")
-    echo "${NOW} [WARNNING] $1"
+    echo -e "${NOW} ${YELLOW}[WARNNING] $1 ${END}"
 }
 
 log_error() {
     # Usage: log_error "this is the error log message"
     NOW=$(date +"%Y-%m-%d %H:%M:%S")
-    echo "${NOW} [ERROR] $1"
+    echo -e "${NOW} ${RED}[ERROR] $1 ${END}"
 }
 
 log_exit() {
     # Usage: log_exit "the log message before exit"
     log_error "$1"
     exit 1
+}
+
+#====================== debug ======================
+
+is_dry_run() {
+    if [ -z "$DRY_RUN" ]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+config_sh_c() {
+    user="$(id -un 2>/dev/null || true)"
+
+    sh_c='sh -c'
+    if [ "$user" != 'root' ]; then
+        if is_command_exists sudo; then
+            sh_c='sudo -E sh -c'
+        elif is_command_exists su; then
+            sh_c='su -c'
+        else
+            cat >&2 <<-'EOF'
+            Error: this installer needs the ability to run commands as root.
+            We are unable to find either "sudo" or "su" available to make this happen.
+EOF
+            exit 1
+        fi
+    fi
+
+    if is_dry_run; then
+        sh_c="echo"
+    fi
+}
+
+get_distribution() {
+    lsb_dist=""
+    lsb_dist_version_id=""
+    # Every system that we officially support has /etc/os-release
+    if [ -r /etc/os-release ]; then
+        lsb_dist="$(. /etc/os-release && echo "$ID")"
+        # lsb_dist_version_id="$(echo "$VERSION_ID")"
+        lsb_dist_version_id="$(. /etc/os-release && echo "$VERSION_ID")"
+    fi
+    # Returning an empty string here should be alright since the
+    # case statements don't act unless you provide an actual value
+    echo "$lsb_dist"
+    # echo "$lsb_dist_version_id"
+}
+
+get_distribution_version_id() {
+    lsb_dist_version_id=""
+    # Every system that we officially support has /etc/os-release
+    if [ -r /etc/os-release ]; then
+        lsb_dist_version_id="$(. /etc/os-release && echo "$VERSION_ID")"
+    fi
+    echo "$lsb_dist_version_id"
 }
 
 #====================== action ======================
@@ -187,6 +252,7 @@ function if_file_or_dir_exist_then_copy_to() {
 
 is_command_exists () {
     type "$1" &> /dev/null ;
+    # command -v "$@" > /dev/null 2>&1
 }
 
 #====================== dir  ======================
