@@ -22,9 +22,9 @@ echo_separator() {
 }
 
 echo_in_processing_bar() {
-    # Usage: bar 1 10
-    #            ^----- Elapsed Percentage (0-100).
-    #               ^-- Total length in chars.
+    # Usage: echo_in_processing_bar 1 10
+    #                               ^----- Elapsed Percentage (0-100).
+    #                                   ^-- Total length in chars.
     ((elapsed=$1*$2/100))
 
     # Create the bar with spaces.
@@ -93,6 +93,8 @@ EOF
     fi
 }
 
+#====================== system ======================
+
 get_distribution() {
     lsb_dist=""
     lsb_dist_version_id=""
@@ -115,6 +117,13 @@ get_distribution_version_id() {
         lsb_dist_version_id="$(. /etc/os-release && echo "$VERSION_ID")"
     fi
     echo "$lsb_dist_version_id"
+}
+
+disable_selinux(){
+    if [ -s /etc/selinux/config ] && grep 'SELINUX=enforcing' /etc/selinux/config; then
+        sed -i 's/SELINUX=enforcing/SELINUX=disabled/g' /etc/selinux/config
+        setenforce 0
+    fi
 }
 
 #====================== action ======================
@@ -175,7 +184,7 @@ if_empty_then_exit() {
 }
 
 if_empty_then_return_default() {
-    # Usage: A=$(if_empty_return_default "${1}" 123)
+    # Usage: A=$(if_empty_then_return_default "${1}" 123)
     if [ -z "${1}" ]
     then
         echo "${2}"
@@ -232,7 +241,7 @@ if_dir_exist_then_remove() {
     fi
 }
 
-function if_file_or_dir_exist_then_move_to() {
+if_file_or_dir_exist_then_move_to() {
     if [ -e "$1" ]
     then
         mv "$1" "$2"
@@ -240,7 +249,7 @@ function if_file_or_dir_exist_then_move_to() {
     fi
 }
 
-function if_file_or_dir_exist_then_copy_to() {
+if_file_or_dir_exist_then_copy_to() {
     if [ -e "$1" ]
     then
         cp -r "$1" "$2"
@@ -253,6 +262,11 @@ function if_file_or_dir_exist_then_copy_to() {
 is_command_exists () {
     type "$1" &> /dev/null ;
     # command -v "$@" > /dev/null 2>&1
+}
+
+is_user_exists() {
+    # Usage: is_user_exists test
+    id "$1" >& /dev/null
 }
 
 #====================== dir  ======================
@@ -421,4 +435,9 @@ generate_uuid() {
     done
 
     printf '\n'
+}
+
+generate_password() {
+    # Usage: generate_password 12
+    echo $(openssl rand -base64 $1)
 }

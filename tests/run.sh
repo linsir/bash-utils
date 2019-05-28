@@ -1,6 +1,8 @@
+#!/bin/bash
 
-rm -f utils.sh
+# rm -f utils.sh
 if [ ! -f "utils.sh" ];then
+    echo "Download utils to $CURRENT_DIR/utils.sh ."
     curl https://raw.githubusercontent.com/linsir/bash-utils/master/utils.sh -o utils.sh
     # chmod +x utils.sh
 fi
@@ -10,7 +12,6 @@ BASEDIR=$(dirname "$0")
 cd "$BASEDIR" || exit
 CURRENT_DIR=$(pwd)
 
-echo "$CURRENT_DIR/utils.sh"
 # source utils
 source "${CURRENT_DIR}"/utils.sh
 # do something
@@ -23,3 +24,13 @@ get_today
 get_distribution
 # get_distribution_version_id
 echo $lsb_dist_version_id
+
+if is_user_exists test; then
+    echo "test is exists."
+elif is_user_exists linsir; then
+        echo "linsir is exists."
+else
+    echo "other"
+fi
+
+generate_password 12
