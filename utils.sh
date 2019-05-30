@@ -160,6 +160,19 @@ confirm() {
     fi
 }
 
+confirm_yes() {
+    # Usage: x=$(confirm_yes "do you want to continue?")
+    #        if [ "$x" = "yes" ]
+    QUESTION="$1"
+    read -p "${QUESTION} [Yn] " ANSWER
+    if [[ "${ANSWER}" == "n" ]] || [[ "${ANSWER}" == "N" ]]
+    then
+        echo "no"
+    else
+        echo "yes"
+    fi
+}
+
 
 #====================== if ======================
 
