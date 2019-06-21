@@ -452,5 +452,6 @@ generate_uuid() {
 
 generate_password() {
     # Usage: generate_password 12
-    echo $(openssl rand -base64 $1)
+    # echo $(openssl rand -base64 $1)
+    echo $(tr -dc '_A-Za-z0-9' </dev/urandom | head -c 10)
 }
